@@ -1,171 +1,258 @@
-# AI Prompt Iterations — QA Documentation
+# AI Prompt Iterations — QA Documentation (CRISPE Framework)
 
 Dokumentasi ini mencatat iterasi prompt yang digunakan selama pengembangan
 fitur **ProjectsPage** (halaman projek dengan filter dan carousel) pada
-website portfolio React + TypeScript ini, beserta analisis QA tentang mengapa
-revisi tertentu menghasilkan output yang lebih baik.
+website portfolio React + TypeScript ini. Setiap prompt dianalisis
+menggunakan framework **CRISPE**:
+
+| Elemen | Arti |
+|---|---|
+| **C**ontext | Deskripsi codebase dan tech stack |
+| **R**ole | Persona yang diberikan ke AI ("You are a senior React developer...") |
+| **I**nstruction | Tugas spesifik yang harus dikerjakan |
+| **S**cope | Batasan dan constraint |
+| **P**recision | Format output yang diinginkan |
+| **E**xample | Contoh/referensi jika diperlukan |
+
+**Contoh prompt buruk:** "Make a login form"
+
+**Contoh prompt baik:** "You are a senior React developer. I have a
+TypeScript React app using TailwindCSS and Zod for validation. Create a
+login form component that: accepts email and password, validates with Zod
+(email format, password min 8 chars), shows inline error messages, calls
+`onSubmit(data: LoginFormData)` prop on valid submit, and is fully
+accessible with proper ARIA labels."
 
 ---
 
 ## Iteration 1 — Prompt Awal (Terlalu Umum)
 
-**Prompt:**
+**Prompt asli:**
 
 > "Create a projects page for my React website."
 
+### Analisis CRISPE
+
+| Elemen | Ada? | Isi |
+|---|---|---|
+| Context | Sebagian | Hanya "React website" — tanpa TypeScript, struktur folder, atau design system |
+| Role | Tidak ada | — |
+| Instruction | Terlalu umum | "Create a projects page" — tanpa layout atau fitur |
+| Scope | Tidak ada | Tidak ada batasan; AI bebas menghapus/mengubah apa pun |
+| Precision | Tidak ada | Tidak jelas: satu file? banyak komponen? styling apa? |
+| Example | Tidak ada | — |
+
 **Output yang dihasilkan:**
-Halaman statis sederhana dengan daftar projek dalam layout satu kolom, tanpa
-filter, tanpa interaksi, dan styling generik yang tidak konsisten dengan
-design system website (warna teal `#0f766e`, kartu rounded, font yang sudah ada).
+Halaman statis satu kolom, tanpa filter, tanpa interaksi, dengan styling
+generik yang tidak konsisten dengan design system website (teal `#0f766e`,
+kartu rounded, font yang sudah ada).
 
-**Masalah:**
-- Tidak menyebutkan struktur layout yang diinginkan (grid? list? carousel?)
-- Tidak menyebutkan fitur (filter, link detail)
-- Tidak memberi konteks tech stack (TypeScript, komponen yang sudah ada)
-- AI harus menebak terlalu banyak, sehingga hasilnya "aman tapi membosankan"
+**Pelajaran:** Dengan 5 dari 6 elemen CRISPE kosong, AI mengisi kekosongan
+dengan asumsi default — hasilnya "aman tapi membosankan".
 
-**Pelajaran:** Prompt tanpa spesifikasi layout dan fitur menghasilkan output
-generik. AI mengisi kekosongan dengan asumsi default.
+### Versi CRISPE yang lebih baik
+
+> **[Context]** I have a TypeScript React (Vite) portfolio website with plain
+> CSS in `App.css`, a teal `#0f766e` design system, and existing pages in
+> `src/pages/`. **[Role]** You are a senior React developer. **[Instruction]**
+> Create a `ProjectsPage` component that lists my projects. **[Scope]** Reuse
+> the existing `ProjectCard` component and design tokens; do not add new
+> dependencies. **[Precision]** One `ProjectsPage.tsx` file in `src/pages/`,
+> typed with a `Project` interface. **[Example]** Follow the layout style of
+> the existing `AboutPage.tsx`.
 
 ---
 
-## Iteration 2 — Menambahkan Peran, Konteks Stack, dan Fitur Spesifik
+## Iteration 2 — Role + Context + Fitur Spesifik
 
-**Prompt:**
+**Prompt asli:**
 
 > "Imagine you are a senior React developer, I have a TypeScript React
 > website, please create a ProjectsPage component with a grid layout and
 > filters and integrate it with my TypeScript React website. Make it
 > carousel model and keep it the 'Lihat Detail' that connect to project links."
 
+### Analisis CRISPE
+
+| Elemen | Ada? | Isi |
+|---|---|---|
+| Context | Ada | "TypeScript React website" |
+| Role | Ada | "senior React developer" |
+| Instruction | Ada | Buat `ProjectsPage` dengan grid, filter, carousel, lalu integrasikan |
+| Scope | Ada | "keep the 'Lihat Detail' that connect to project links" — constraint preservasi |
+| Precision | Sebagian | Nama komponen jelas (`ProjectsPage`), tapi "carousel model" ambigu |
+| Example | Tidak ada | — |
+
 **Output yang dihasilkan:**
 - `ProjectsPage.tsx` dengan filter kategori (Semua / Web / Game)
-- Carousel satu slide per tampilan dengan tombol panah dan dot navigation
+- Carousel satu slide per tampilan dengan panah dan dot navigation
 - Tipe `Project` diperluas dengan field `category`
-- Tombol "Lihat Detail" tetap terhubung ke link repositori GitHub
-- Styling mengikuti token desain yang sudah ada di `App.css`
+- "Lihat Detail" tetap terhubung ke repositori GitHub
+- Styling mengikuti token desain di `App.css`
 
-**Mengapa lebih baik:**
-1. **Role prompting** ("senior React developer") mendorong output yang
-   mengikuti best practice: pemisahan komponen, tipe TypeScript yang benar,
-   aksesibilitas (aria-label, role tablist).
-2. **Konteks stack** ("TypeScript React website") memastikan AI membaca
-   kode yang sudah ada dan mengintegrasikan, bukan membuat dari nol.
-3. **Fitur eksplisit** ("filters", "carousel", "Lihat Detail") menghilangkan
-   ambiguitas tentang apa yang harus dibangun.
-4. **Constraint preservasi** ("keep the 'Lihat Detail'") mencegah AI
-   menghapus fungsionalitas yang sudah ada — constraint negatif/preservasi
-   sama pentingnya dengan permintaan fitur baru.
+**Mengapa lebih baik dari Iteration 1:**
+1. **Role** mendorong best practice: pemisahan komponen, tipe TypeScript
+   benar, aksesibilitas (aria-label, role tablist).
+2. **Context** memastikan AI membaca kode yang ada dan mengintegrasikan,
+   bukan membuat dari nol.
+3. **Scope (constraint preservasi)** mencegah AI menghapus fungsionalitas
+   yang sudah ada.
 
-**Kelemahan yang tersisa:** "Carousel model" masih ambigu — ada banyak jenis
-carousel. AI memilih model satu-slide-penuh, yang secara visual kurang menarik.
+**Kelemahan tersisa:** Elemen **Example** kosong dan **Precision** lemah —
+"carousel model" bisa berarti puluhan jenis carousel, sehingga AI memilih
+model satu-slide-penuh yang kurang menarik secara visual.
+
+### Versi CRISPE yang lebih baik
+
+> **[Context]** My TypeScript React portfolio has a `ProjectCard` component
+> and an `App.css` design system (teal primary, rounded cards).
+> **[Role]** You are a senior React developer. **[Instruction]** Build a
+> `ProjectsPage` with category filter chips and a carousel that shows one
+> project at a time with prev/next arrows and dot pagination. **[Scope]**
+> Keep the existing "Lihat Detail" links to each GitHub repo; no new
+> libraries. **[Precision]** Extend the `Project` interface with a
+> `category: string` field; filters must reset the carousel to slide 1.
+> **[Example]** Filter chips like GitHub's topic pills; carousel like a
+> standard single-slide hero slider.
 
 ---
 
-## Iteration 3 — Menambahkan Referensi Visual (Screenshot)
+## Iteration 3 — Menambahkan Example Visual (Screenshot)
 
-**Prompt:**
+**Prompt asli:**
 
 > "Imagine you are a senior React developer and want to fix the project
-> component to this kind of carousel model" + **[lampiran screenshot
-> landing page BrandLyft dengan carousel filmstrip]**
+> component to this kind of carousel model" + **[screenshot landing page
+> BrandLyft dengan carousel filmstrip]**
+
+### Analisis CRISPE
+
+| Elemen | Ada? | Isi |
+|---|---|---|
+| Context | Implisit | Terbangun dari percakapan sebelumnya (komponen dan file sudah dikenal) |
+| Role | Ada | "senior React developer" |
+| Instruction | Ada | "fix the project component to this kind of carousel model" |
+| Scope | Implisit | "fix" menandakan revisi, bukan rebuild — filter & "Lihat Detail" dipertahankan |
+| Precision | Via gambar | Orientasi potret, sudut membulat, kartu berjajar rapat |
+| Example | **Ada (kunci!)** | Screenshot referensi BrandLyft |
 
 **Output yang dihasilkan:**
-- Carousel berubah menjadi model **filmstrip**: kartu potret tinggi dengan
-  sudut membulat besar, berjajar rapat, beberapa kartu terlihat sekaligus
-- Kartu menjadi image-forward: gambar cover, badge kategori, teks dan tombol
-  overlay di atas gradient gelap
-- Gambar cover projek dibuat khusus agar kartu tidak kosong
+- Carousel **filmstrip**: kartu potret tinggi, sudut membulat besar,
+  beberapa kartu terlihat sekaligus
+- Kartu image-forward: cover, badge kategori, teks + tombol overlay di atas
+  gradient gelap
+- Gambar cover projek dibuat khusus
 
-**Mengapa lebih baik:**
-1. **Referensi visual mengalahkan deskripsi verbal.** Kata "carousel" pada
-   Iteration 2 bisa berarti puluhan model berbeda. Satu screenshot langsung
-   mengunci: orientasi kartu (potret), kepadatan (rapat), radius sudut,
-   dan proporsi.
-2. AI dapat mengekstrak detail implisit dari gambar (kartu terpotong di
-   tepi viewport, rasio aspek 3:4, jarak antar kartu) yang hampir mustahil
-   dideskripsikan lengkap dengan teks.
-3. Frasa "fix it to this kind of model" memperjelas bahwa ini **revisi**,
-   bukan pembuatan ulang — filter dan "Lihat Detail" dipertahankan tanpa
-   perlu diminta ulang.
+**Mengapa lebih baik dari Iteration 2:**
+1. **Elemen Example (visual) adalah lompatan kualitas terbesar.** Kata
+   "carousel" ambigu; satu screenshot langsung mengunci orientasi kartu,
+   kepadatan, radius sudut, dan proporsi (rasio 3:4).
+2. AI mengekstrak detail implisit dari gambar (kartu terpotong di tepi
+   viewport, jarak antar kartu) yang hampir mustahil dideskripsikan teks.
+3. Kata "fix" pada **Instruction** memperjelas ini revisi — **Scope**
+   preservasi terbawa otomatis tanpa diulang.
 
-**Pelajaran:** Untuk permintaan desain UI, lampirkan gambar referensi.
-Ini adalah peningkatan kualitas output terbesar dalam seluruh iterasi.
+**Pelajaran:** Untuk permintaan desain UI, elemen **E**xample berupa gambar
+referensi jauh lebih efektif daripada deskripsi verbal terpanjang sekalipun.
 
 ---
 
-## Iteration 4 — Iterasi Desain dengan Referensi Baru
+## Iteration 4 — Iterasi Singkat di Atas Konteks yang Terbangun
 
-**Prompt:**
+**Prompt asli:**
 
-> "What if I want to make it to this kind of model" + **[lampiran
-> screenshot carousel coverflow bertema bunga: kartu aktif besar di tengah,
-> kartu tetangga kecil dan redup di sisi, counter '06/12', dash pagination]**
+> "What if I want to make it to this kind of model" + **[screenshot carousel
+> coverflow: kartu aktif besar di tengah, tetangga kecil dan redup,
+> counter '06/12', dash pagination]**
+
+### Analisis CRISPE
+
+| Elemen | Ada? | Isi |
+|---|---|---|
+| Context | Implisit penuh | Seluruh komponen, data, dan styling sudah ada dalam percakapan |
+| Role | Terbawa | Persona "senior React developer" dari giliran sebelumnya |
+| Instruction | Ada | Ubah carousel ke model pada gambar |
+| Scope | Implisit | Hanya model carousel yang berubah; fitur lain tetap |
+| Precision | Via gambar | Scale kartu aktif vs tetangga, format counter, bentuk pagination |
+| Example | Ada | Screenshot coverflow |
 
 **Output yang dihasilkan:**
-- Carousel **coverflow**: slide aktif membesar di tengah (scale 1.0),
-  tetangga mengecil (scale 0.78), redup (opacity 0.55) dan desaturasi
-- Counter "01/02" dengan padding nol di kanan atas
-- Pagination berubah dari dot bulat menjadi dash (strip pendek)
-- Kartu samping bisa diklik untuk langsung fokus
-- Logika wrap-around agar navigasi melingkar dengan jarak terpendek
+- Carousel **coverflow**: slide aktif scale 1.0 di tengah; tetangga scale
+  0.78, opacity 0.55, desaturasi
+- Counter "01/02" dengan zero-padding di kanan atas
+- Pagination dash menggantikan dot
+- Kartu samping dapat diklik; navigasi wrap-around jarak terpendek
 
-**Mengapa lebih baik:**
-1. **Prompt singkat bekerja jika konteks sudah terbangun.** "What if I want
-   this kind of model" hanya 10 kata, tetapi karena percakapan sebelumnya
-   sudah menetapkan komponen, data, dan constraint, AI hanya perlu mengubah
-   satu dimensi: model carousel-nya.
+**Mengapa efektif meski sangat singkat:**
+1. **Prompt 10 kata cukup karena Context sudah terakumulasi.** Dalam
+   percakapan berkelanjutan, elemen C, R, dan S tidak perlu diulang —
+   cukup I (instruksi baru) dan E (referensi baru).
 2. Screenshot kedua kembali menyampaikan detail non-verbal: hierarki
-   z-index, format counter dengan angka tebal, bentuk pagination dash —
-   semuanya direplikasi tanpa diminta secara eksplisit.
-3. **Iterasi bertahap lebih baik daripada satu prompt raksasa.** Memecah
-   grid → carousel → filmstrip → coverflow menjadi beberapa giliran membuat
-   setiap perubahan mudah diverifikasi dan mudah di-rollback.
+   z-index, angka counter tebal, dash pagination — direplikasi tanpa
+   diminta eksplisit.
+3. **Iterasi bertahap lebih baik daripada satu prompt raksasa.** Grid →
+   carousel → filmstrip → coverflow dalam beberapa giliran membuat setiap
+   perubahan mudah diverifikasi dan di-rollback.
 
 ---
 
-## Iteration 5 — Prompt QA / Dokumentasi (Meta-Prompt)
+## Iteration 5 — Meta-Prompt QA / Dokumentasi
 
-**Prompt:**
+**Prompt asli:**
 
 > "Now you are the quality assurance team, and I want you to create an
 > ai-prompts.md file documenting at least 5 prompt iterations and an
 > analysis of why certain revisions produced better output."
 
-**Output yang dihasilkan:** Dokumen ini.
+### Analisis CRISPE
+
+| Elemen | Ada? | Isi |
+|---|---|---|
+| Context | Implisit | Riwayat seluruh iterasi prompt ada di percakapan |
+| Role | Ada | "you are the quality assurance team" — mengubah mode dari koding ke analisis |
+| Instruction | Ada | Buat dokumentasi iterasi prompt beserta analisis |
+| Scope | Ada | "at least 5 prompt iterations" — kriteria minimum terukur |
+| Precision | Ada | "an ai-prompts.md file" — format output eksplisit (file Markdown) |
+| Example | Tidak perlu | Struktur dokumen analisis sudah umum dipahami |
+
+**Output yang dihasilkan:** Dokumen ini (lalu direvisi ke format CRISPE
+pada iterasi berikutnya).
 
 **Mengapa efektif:**
-1. **Pergantian peran eksplisit** ("now you are the QA team") mengubah mode
-   output dari menulis kode menjadi menulis analisis.
-2. **Kriteria keberhasilan terukur** ("at least 5 prompt iterations",
-   "analysis of why") memberi struktur dokumen yang jelas dan bisa
-   diverifikasi.
-3. **Format output disebutkan** ("ai-prompts.md file") menghilangkan
-   keraguan apakah jawaban berupa file, chat, atau komentar kode.
+1. **Role switch eksplisit** mengubah mode output dari menulis kode menjadi
+   menulis analisis QA.
+2. **Scope terukur** ("at least 5") membuat hasil dapat diverifikasi.
+3. **Precision** ("ai-prompts.md file") menghilangkan keraguan apakah
+   jawaban berupa file, chat, atau komentar kode.
+
+**Catatan revisi:** Prompt lanjutan "adjust the ai prompt md with the style
+of CRISPE framework each prompt" menambahkan elemen **Example** (definisi
+CRISPE + contoh prompt buruk/baik) — dan menghasilkan restrukturisasi
+dokumen yang jauh lebih presisi karena format targetnya kini eksplisit.
 
 ---
 
 ## Ringkasan Analisis QA
 
-| # | Teknik Prompt | Dampak pada Kualitas Output |
-|---|---------------|------------------------------|
-| 1 | Prompt umum tanpa spesifikasi | Output generik, tidak terintegrasi |
-| 2 | Role + konteks stack + fitur eksplisit + constraint preservasi | Fungsional dan terintegrasi, tapi desain masih ambigu |
-| 3 | Referensi visual (screenshot) | Lompatan kualitas terbesar; detail desain terkunci |
-| 4 | Iterasi singkat di atas konteks yang sudah ada | Perubahan presisi dengan effort prompt minimal |
-| 5 | Meta-prompt dengan peran, kriteria, dan format output | Dokumentasi terstruktur dan dapat diverifikasi |
+| # | Elemen CRISPE yang terisi | Dampak pada Kualitas Output |
+|---|---------------------------|------------------------------|
+| 1 | C (sebagian) | Output generik, tidak terintegrasi |
+| 2 | C, R, I, S | Fungsional dan terintegrasi, tapi desain ambigu (P lemah, E kosong) |
+| 3 | C, R, I, S, P, **E (visual)** | Lompatan kualitas terbesar; detail desain terkunci |
+| 4 | I, E baru; C, R, S terbawa konteks | Perubahan presisi dengan effort prompt minimal |
+| 5 | R, I, S, P | Dokumentasi terstruktur dan dapat diverifikasi |
 
 ### Temuan Utama
 
-1. **Spesifisitas berbanding lurus dengan kualitas.** Setiap detail yang
-   tidak disebutkan akan diisi AI dengan asumsi default.
-2. **Gambar > kata-kata untuk desain UI.** Screenshot referensi menghasilkan
-   replikasi yang jauh lebih akurat daripada deskripsi verbal terpanjang
-   sekalipun.
-3. **Constraint preservasi wajib disebut.** "Keep the 'Lihat Detail'"
-   mencegah regresi fungsionalitas saat desain dirombak.
-4. **Konteks percakapan adalah aset.** Setelah konteks terbangun, prompt
-   lanjutan bisa sangat singkat namun tetap presisi.
+1. **Semakin banyak elemen CRISPE terisi, semakin baik output.** Setiap
+   elemen kosong akan diisi AI dengan asumsi default.
+2. **Example visual > deskripsi verbal untuk desain UI.** Screenshot
+   referensi (Iteration 3 & 4) adalah elemen CRISPE dengan dampak terbesar
+   dalam proyek ini.
+3. **Scope (constraint preservasi) wajib disebut.** "Keep the 'Lihat
+   Detail'" mencegah regresi fungsionalitas saat desain dirombak.
+4. **Context terakumulasi dalam percakapan.** Setelah C, R, dan S
+   terbangun, prompt lanjutan cukup berisi I dan E yang baru.
 5. **Verifikasi tiap iterasi.** Setiap revisi diuji langsung di browser
    (filter, navigasi panah, klik kartu samping) sebelum dianggap selesai —
    praktik QA yang mencegah bug menumpuk antar iterasi.
