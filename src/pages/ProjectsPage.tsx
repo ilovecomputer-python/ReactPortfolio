@@ -9,6 +9,7 @@ const projects: Project[] = [
     stack: ['HTML', 'CSS', 'JavaScript'],
     link: 'https://github.com/ilovecomputer-python/PortfolioJose.git',
     category: 'Web',
+    image: '/projects/portfolio-landing.png',
   },
   {
     title: 'Kotak Nusantara',
@@ -17,6 +18,7 @@ const projects: Project[] = [
     stack: ['RenPy', 'Visual Novel', 'Python', 'Kewarganegaraan'],
     link: 'https://github.com/vescentongit/Kotak-Nusantara.git',
     category: 'Game',
+    image: '/projects/kotak-nusantara.png',
   },
 ]
 
@@ -90,7 +92,12 @@ function ProjectsPage() {
           <div className="carousel-viewport">
             <div
               className="carousel-track"
-              style={{ transform: `translateX(-${activeIndex * 100}%)` }}
+              style={{
+                transform:
+                  'translateX(calc(' +
+                  activeIndex +
+                  ' * (var(--card-w) + var(--card-gap)) * -1))',
+              }}
             >
               {filteredProjects.map((project) => (
                 <div className="carousel-slide" key={project.title}>

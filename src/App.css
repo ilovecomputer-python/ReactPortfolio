@@ -325,36 +325,87 @@ body {
 }
 
 .project-card {
-  background: #fff;
-  border: 1px solid #dfe3ee;
-  border-radius: 16px;
-  padding: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
   height: 100%;
 }
 
+.project-media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 24px;
+  overflow: hidden;
+  background: #e2e8f0;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+}
+
+.project-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s ease;
+}
+
+.project-card:hover .project-media img {
+  transform: scale(1.06);
+}
+
 .project-category {
-  align-self: flex-start;
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 2;
   background: #0f766e;
   color: #fff;
   border-radius: 999px;
-  padding: 4px 12px;
-  font-size: 0.72rem;
+  padding: 5px 12px;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.2);
 }
 
-.project-card h3 {
+.project-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 18px;
+  background: linear-gradient(
+    to top,
+    rgba(15, 23, 42, 0.92) 0%,
+    rgba(15, 23, 42, 0.65) 40%,
+    rgba(15, 23, 42, 0) 75%
+  );
+}
+
+.project-overlay h3 {
   margin: 0;
   font-size: 1.2rem;
-  color: #111827;
+  font-weight: 800;
+  color: #fff;
 }
 
-.project-card .action-link {
-  margin-top: auto;
+.project-overlay p {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: #e2e8f0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.project-overlay .action-link {
+  margin-top: 6px;
   align-self: flex-start;
 }
 
@@ -389,38 +440,41 @@ body {
   color: #fff;
 }
 
-/* Carousel */
+/* Filmstrip carousel */
 .project-carousel {
+  --card-w: 260px;
+  --card-gap: 20px;
   display: flex;
-  align-items: stretch;
+  align-items: center;
   gap: 12px;
 }
 
 .carousel-viewport {
   flex: 1;
   overflow: hidden;
-  border-radius: 16px;
+  padding: 8px 0;
 }
 
 .carousel-track {
   display: flex;
-  transition: transform 0.4s ease;
+  gap: var(--card-gap);
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .carousel-slide {
-  flex: 0 0 100%;
-  min-width: 100%;
+  flex: 0 0 var(--card-w);
+  width: var(--card-w);
   box-sizing: border-box;
-  padding: 4px;
 }
 
 .carousel-arrow {
   flex-shrink: 0;
   width: 48px;
+  height: 48px;
   border: 1px solid #dfe3ee;
   background: #fff;
   color: #0f766e;
-  border-radius: 14px;
+  border-radius: 999px;
   font-size: 1.8rem;
   line-height: 1;
   cursor: pointer;
@@ -624,6 +678,11 @@ body {
 
   .project-grid {
     grid-template-columns: 1fr;
+  }
+
+  .project-carousel {
+    --card-w: 220px;
+    --card-gap: 14px;
   }
 
   .page-footer {
