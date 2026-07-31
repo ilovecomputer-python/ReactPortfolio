@@ -3,6 +3,7 @@ export interface Project {
   description: string
   stack: string[]
   link: string
+  category: string
 }
 
 interface ProjectCardProps {
@@ -12,6 +13,7 @@ interface ProjectCardProps {
 function ProjectCard({ project }: ProjectCardProps) {
   return (
     <article className="project-card">
+      <span className="project-category">{project.category}</span>
       <h3>{project.title}</h3>
       <p>{project.description}</p>
       <div className="tag-list">
