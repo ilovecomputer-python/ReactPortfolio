@@ -78,60 +78,81 @@ function ProjectsPage() {
           <p className="section-intro">Belum ada projek pada kategori ini.</p>
         </div>
       ) : (
-        <div className="project-carousel">
-          <button
-            type="button"
-            className="carousel-arrow"
-            onClick={goPrev}
-            aria-label="Projek sebelumnya"
-            disabled={total < 2}
-          >
-            &#8249;
-          </button>
-
-          <div className="carousel-viewport">
-            <div
-              className="carousel-track"
-              style={{
-                transform:
-                  'translateX(calc(' +
-                  activeIndex +
-                  ' * (var(--card-w) + var(--card-gap)) * -1))',
-              }}
-            >
-              {filteredProjects.map((project) => (
-                <div className="carousel-slide" key={project.title}>
-                  <ProjectCard project={project} />
-                </div>
-              ))}
-            </div>
+        <div className="coverflow-wrapper">
+          <div className="coverflow-header">
+            <span className="coverflow-label">{activeCategory}</span>
+            <span className="coverflow-counter">
+              <strong>{String(activeIndex + 1).padStart(2, '0')}</strong>
+              {'/' + String(total).padStart(2, '0')}
+            </span>
           </div>
 
-          <button
-            type="button"
-            className="carousel-arrow"
-            onClick={goNext}
-            aria-label="Projek berikutnya"
-            disabled={total < 2}
-          >
-            &#8250;
-          </button>
-        </div>
-      )}
-
-      {total > 1 && (
-        <div className="carousel-dots" role="tablist" aria-label="Navigasi projek">
-          {filteredProjects.map((project, index) => (
+          <div className="coverflow-stage">
             <button
-              key={project.title}
               type="button"
-              role="tab"
-              aria-selected={index === activeIndex}
-              aria-label={`Tampilkan ${project.title}`}
-              className={`carousel-dot ${index === activeIndex ? 'active' : ''}`}
-              onClick={() => setActiveIndex(index)}
-            />
-          ))}
+              className="carousel-arrow prev"
+              onClick={goPrev}
+              aria-label="Projek sebelumnya"
+              disabled={total < 2}
+            >
+              &#8249;
+            </button>
+
+            {filteredProjects.map((project, index) => {
+              // Shortest signed distance from the active slide (with wrap-around).
+              let offset = index - activeIndex
+              if (offset > total / 2) offset -= total
+              if (offset < -total / 2) offset += total
+
+              const isActive = offset === 0
+              const isVisible = Math.abs(offset) <= 1
+
+              return (
+                <div
+                  key={project.title}
+                  className={`coverflow-slide ${isActive ? 'active' : ''} ${
+                    isVisible ? '' : 'hidden'
+                  }`}
+                  style={{
+                    transform: `translate(-50%, -50%) translateX(${offset * 78}%) scale(${
+                      isActive ? 1 : 0.78
+                    })`,
+                    zIndex: isActive ? 3 : 2 - Math.abs(offset),
+                  }}
+                  aria-hidden={!isActive}
+                  onClick={() => !isActive && setActiveIndex(index)}
+                >
+                  <ProjectCard project={project} />
+                </div>
+              )
+            })}
+
+            <button
+              type="button"
+              className="carousel-arrow next"
+              onClick={goNext}
+              aria-label="Projek berikutnya"
+              disabled={total < 2}
+            >
+              &#8250;
+            </button>
+          </div>
+
+          {total > 1 && (
+            <div className="carousel-dashes" role="tablist" aria-label="Navigasi projek">
+              {filteredProjects.map((project, index) => (
+                <button
+                  key={project.title}
+                  type="button"
+                  role="tab"
+                  aria-selected={index === activeIndex}
+                  aria-label={`Tampilkan ${project.title}`}
+                  className={`carousel-dash ${index === activeIndex ? 'active' : ''}`}
+                  onClick={() => setActiveIndex(index)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </section>
